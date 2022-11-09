@@ -80,7 +80,6 @@ def import_regrid_calc(control_path, pulse_path, ds_out, variable, pulse_size = 
 def _regrid_ds(ds_in, ds_out):
     regridder = xe.Regridder(ds_in, ds_out, "bilinear")
     ds_new = regridder(ds_in) 
-    
     return(ds_new)
 
 
@@ -116,6 +115,7 @@ def compound_mult(start,years, percentage):
     arr = np.array(num)
     for year in range(years):
         num += num*percentage
+        #print(num)
         arr = np.append(arr, num)
     return(arr)
 
