@@ -88,14 +88,15 @@ def find_area(ds, R = 6378.1):
     """ ds is the dataset, i is the number of longitudes to assess, j is the number of latitudes, and R is the radius of the earth in km. 
     Must have the ds['lat'] in descending order (90...-90)
     Returns Area of Grid cell in km"""
-    
-    dy = (ds['lat_b'].roll({'lat_b':-1}, roll_coords = False) - ds['lat_b'])[:-1]*2*np.pi*R/360 
+    circumference = (2*np.pi)*R
+    deg_to_m = (circumference/360) 
+    dy = (ds['lat_b'].roll({'lat_b':-1}, roll_coords = False) - ds['lat_b'])[:-1]*deg_to_m
 
     dx1 = (ds['lon_b'].roll({'lon_b':-1}, roll_coords = False) - 
-           ds['lon_b'])[:-1]*2*np.pi*R*np.cos(np.deg2rad(ds['lat_b']))
+           ds['lon_b'])[:-1]*deg_to_m*np.cos(np.deg2rad(ds['lat_b']))
     
     dx2 = (ds['lon_b'].roll({'lon_b':-1}, roll_coords = False) - 
-           ds['lon_b'])[:-1]*2*np.pi*R*np.cos(np.deg2rad(ds['lat_b'].roll({'lat_b':-1}, roll_coords = False)[:-1]))
+           ds['lon_b'])[:-1]*deg_to_m*np.cos(np.deg2rad(ds['lat_b'].roll({'lat_b':-1}, roll_coords = False)[:-1]))
     
     A = .5*(dx1+dx2)*dy
     
