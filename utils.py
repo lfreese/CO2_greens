@@ -61,9 +61,23 @@ def _calc_greens(ds_control, ds_pulse, variable, pulse_size = 100):
     
     return(G)
 
+def _calc_anomaly(ds_control, ds_pulse):
+    anom_control = (ds_control.groupby("time.month") - ds_control.groupby("time.month").mean(dim = 'time'))
+    anom_pulse = (ds_pulse.groupby("time.month") - ds_pulse.groupby("time.month").mean(dim = 'time'))
+    return(anom_control, anom_pulse)
+
+def _calc_greens_anomaly(anom_control, anom_pulse, variable, pulse_size = 100):
+    
+    #A = find_area(ds_control.isel(time = 0), lat_bound_nm = 'lat_bounds', lon_bound_nm = 'lon_bounds')
+    G = (anom_pulse[variable] - anom_control[variable])/(pulse_size)
+    G = G.groupby('time.year').mean()
+    G.attrs = anom_pulse.attrs
+    
+    return(G)
+
 
 #full function
-def import_regrid_calc(control_path, pulse_path, ds_out, variable, pulse_size = 100,  replace_xy = True, regrid = True):
+def import_regrid_calc(control_path, pulse_path, ds_out, variable, pulse_size = 100,  replace_xy = True, regrid = True, anomaly = False):
     '''Imports the control run and pulse run for a CMIP6 model run, combines them on the date the pulse starts
     Regrids it to the chosen grid size
     Calculates the Green's Function'''
@@ -71,14 +85,20 @@ def import_regrid_calc(control_path, pulse_path, ds_out, variable, pulse_size = 
     ds_control, ds_pulse = _import_combine_pulse_control(control_path, pulse_path, replace_xy)
     if regrid == True:
         ds_control, ds_pulse = _regrid_cont_pulse(ds_control, ds_pulse, ds_out)
-    G = _calc_greens(ds_control, ds_pulse, variable)
-    
-    return(ds_control, ds_pulse, G)
+    if anomaly == True:
+        anom_control, anom_pulse = _calc_anomaly(ds_control, ds_pulse)
+        anom_G = _calc_greens_anomaly(anom_control, anom_pulse, variable, pulse_size)
+    else:
+        G = _calc_greens(ds_control, ds_pulse, variable, pulse_size)
+    if anomaly == True:
+        return(anom_control, anom_pulse, anom_G)
+    else:
+        return(ds_control, ds_pulse, G)
 
 
 #### single regridder ####
 def _regrid_ds(ds_in, ds_out):
-    regridder = xe.Regridder(ds_in, ds_out, "bilinear")
+    regridder = xe.Regridder(ds_in, ds_out,  'bilinear', ignore_degenerate = True)
     ds_new = regridder(ds_in) 
     return(ds_new)
 
