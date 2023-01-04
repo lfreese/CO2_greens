@@ -16,6 +16,7 @@ import xesmf as xe
 import datetime
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
+import cf_xarray as cfxr
 
 
 ########################### CMIP 6 DATA AND REGRIDDING ###################################
@@ -25,12 +26,43 @@ from dateutil.relativedelta import relativedelta
 
 def _import_combine_pulse_control(control_path, pulse_path, replace_xy, m):
     #import and check files
-    if replace_xy == True:
-        ds_control = xr.open_mfdataset(control_path, preprocess = combined_preprocessing, use_cftime=True)
-        ds_pulse = xr.open_mfdataset(pulse_path, preprocess = combined_preprocessing, use_cftime=True)
-    else:
-        ds_control = xr.open_mfdataset(control_path, use_cftime=True)
-        ds_pulse = xr.open_mfdataset(pulse_path, use_cftime=True)
+    #if replace_xy == True:
+       # ds_control = xr.open_mfdataset(control_path, use_cftime=True)
+       # ds_pulse = xr.open_mfdataset(pulse_path, use_cftime=True)
+    #else:
+    ds_control = xr.open_mfdataset(control_path, use_cftime=True)
+    ds_pulse = xr.open_mfdataset(pulse_path, use_cftime=True)
+    
+#     dlon = (ds_control['lon'][1] - ds_control['lon'][0])
+#     ds_control['lon_b'] = np.arange(0,360+dlon,dlon)
+#     dlat = (ds_control['lat'][1] - ds_control['lat'][0])
+#     ds_control['lat_b'] = np.arange(-90,90+dlat,dlat)
+#     ds_control = ds_control.drop(['lat_bnds','lon_bnds'])
+    #regridder = xe.Regridder(ds, ds_out, "conservative")
+#     print(ds_control)
+#     dlon = (ds_pulse['lon'][1] - ds_pulse['lon'][0])
+#     lon_b = np.arange(ds_pulse['lon'][0] - .5*dlon, ds_pulse['lon'][-1] + 1.5*dlon, dlon)
+#     #lon_b = lon_b.loc[lon_b > 0]
+#     ds_pulse['lon_b'] = lon_b
+#     dlat = (ds_pulse['lat'][1] - ds_pulse['lat'][0])
+#     lat_b = np.arange(ds_pulse['lat'][0] - .5*dlat, ds_pulse['lat'][-1] + 1.5*dlat, dlat)
+#     ds_pulse['lat_b'] = lat_b
+#     ds_pulse = ds_pulse.drop(['lat_bnds','lon_bnds'])
+    lat_corners = cfxr.bounds_to_vertices(ds_control.isel(time = 0)['lat_bnds'], "bnds", order=None)
+    lon_corners = cfxr.bounds_to_vertices(ds_control.isel(time = 0)['lon_bnds'], "bnds", order=None)
+    ds_control = ds_control.assign(lon_b=lon_corners, lat_b=lat_corners)
+
+    lat_corners = cfxr.bounds_to_vertices(ds_pulse.isel(time = 0)['lat_bnds'], "bnds", order=None)
+    lon_corners = cfxr.bounds_to_vertices(ds_pulse.isel(time = 0)['lon_bnds'], "bnds", order=None)
+    ds_pulse = ds_pulse.assign(lon_b=lon_corners, lat_b=lat_corners)
+
+    #print(ds_pulse)
+        #fix the lat lon/xy gridding (xmip)
+    #if replace_xy == True:
+       # ds_control = replace_x_y_nominal_lat_lon(ds_control)
+       # ds_pulse = replace_x_y_nominal_lat_lon(ds_pulse)
+    #ds_control = ds_control.rename({'x':'latitude', 'y':'longitude'})
+    #ds_pulse = ds_pulse.rename({'x':'latitude', 'y':'longitude'})
     if ds_control.attrs['parent_source_id'] != ds_pulse.attrs['parent_source_id']:
         print('WARNING: Control and Pulse runs are not from the same parent source!')
     #fix the time for two of the models
@@ -40,21 +72,17 @@ def _import_combine_pulse_control(control_path, pulse_path, replace_xy, m):
         ds_pulse['time'] = ds_control['time'][:len(ds_pulse['time'])]
     #select only the times that match up with the pulse
     ds_control = ds_control.sel(time = slice(ds_control['time'].min(), ds_pulse['time'].max()))
-    #fix the lat lon/xy gridding (xmip)
-    if replace_xy == True:
-        ds_control = replace_x_y_nominal_lat_lon(ds_control)
-        ds_pulse = replace_x_y_nominal_lat_lon(ds_pulse)
 
     return(ds_control, ds_pulse)
 
 
 def _regrid_cont_pulse(ds_control, ds_pulse, ds_out):
-    regridder = xe.Regridder(ds_control, ds_out, "bilinear")
+    regridder = xe.Regridder(ds_control, ds_out, "conservative")
     attrs = ds_control.attrs
     ds_control = regridder(ds_control) 
     ds_control.attrs = attrs
     
-    regridder = xe.Regridder(ds_pulse, ds_out, "bilinear")
+    regridder = xe.Regridder(ds_pulse, ds_out, "conservative")
     attrs = ds_pulse.attrs
     ds_pulse = regridder(ds_pulse) 
     ds_pulse.attrs = attrs
@@ -118,7 +146,7 @@ def import_regrid_calc(control_path, pulse_path, ds_out, variable, m, pulse_size
 
 #### single regridder ####
 def _regrid_ds(ds_in, ds_out):
-    regridder = xe.Regridder(ds_in, ds_out,  'bilinear', ignore_degenerate = True)
+    regridder = xe.Regridder(ds_in, ds_out,  'conservative', ignore_degenerate = True)
     ds_new = regridder(ds_in) 
     ds_new.attrs = ds_in.attrs
     return(ds_new)
@@ -293,4 +321,4 @@ model_run_1pct_dict = {'UKESM1_r1':'UKESM1-0-LL_1pctCO2_r1i1p1f2*',
                       'CANESM5_r2p1':'CanESM5_1pctCO2_r2i1p1f1*',
                       'CANESM5_r3p1':'CanESM5_1pctCO2_r3i1p1f1*'}
 
-model_color = {'UKESM1_r1':'olive', 'UKESM1_r2':'brown', 'UKESM1_r3':'green', 'UKESM1_r4':'lightgreen', 'NORESM2':'blue', 'GFDL':'red', 'MIROC':'purple', 'ACCESS':'pink', 'CANESM5_r1p2':'orange', 'CANESM5_r2p2':'sienna', 'CANESM5_r3p2':'goldenrod'}
+model_color = {'UKESM1_r1':'olive', 'UKESM1_r2':'brown', 'UKESM1_r3':'green', 'UKESM1_r4':'lightgreen', 'NORESM2':'blue', 'GFDL':'red', 'MIROC':'purple', 'ACCESS':'pink', 'CANESM5_r1p2':'orange', 'CANESM5_r2p2':'sienna', 'CANESM5_r3p2':'goldenrod', 'mean':'black'}
