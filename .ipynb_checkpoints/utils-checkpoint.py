@@ -25,29 +25,8 @@ import cf_xarray as cfxr
 #subroutines to import
 
 def _import_combine_pulse_control(control_path, pulse_path, replace_xy, m):
-    #import and check files
-    #if replace_xy == True:
-       # ds_control = xr.open_mfdataset(control_path, use_cftime=True)
-       # ds_pulse = xr.open_mfdataset(pulse_path, use_cftime=True)
-    #else:
     ds_control = xr.open_mfdataset(control_path, use_cftime=True)
     ds_pulse = xr.open_mfdataset(pulse_path, use_cftime=True)
-    
-#     dlon = (ds_control['lon'][1] - ds_control['lon'][0])
-#     ds_control['lon_b'] = np.arange(0,360+dlon,dlon)
-#     dlat = (ds_control['lat'][1] - ds_control['lat'][0])
-#     ds_control['lat_b'] = np.arange(-90,90+dlat,dlat)
-#     ds_control = ds_control.drop(['lat_bnds','lon_bnds'])
-    #regridder = xe.Regridder(ds, ds_out, "conservative")
-#     print(ds_control)
-#     dlon = (ds_pulse['lon'][1] - ds_pulse['lon'][0])
-#     lon_b = np.arange(ds_pulse['lon'][0] - .5*dlon, ds_pulse['lon'][-1] + 1.5*dlon, dlon)
-#     #lon_b = lon_b.loc[lon_b > 0]
-#     ds_pulse['lon_b'] = lon_b
-#     dlat = (ds_pulse['lat'][1] - ds_pulse['lat'][0])
-#     lat_b = np.arange(ds_pulse['lat'][0] - .5*dlat, ds_pulse['lat'][-1] + 1.5*dlat, dlat)
-#     ds_pulse['lat_b'] = lat_b
-#     ds_pulse = ds_pulse.drop(['lat_bnds','lon_bnds'])
     lat_corners = cfxr.bounds_to_vertices(ds_control.isel(time = 0)['lat_bnds'], "bnds", order=None)
     lon_corners = cfxr.bounds_to_vertices(ds_control.isel(time = 0)['lon_bnds'], "bnds", order=None)
     ds_control = ds_control.assign(lon_b=lon_corners, lat_b=lat_corners)
@@ -56,20 +35,14 @@ def _import_combine_pulse_control(control_path, pulse_path, replace_xy, m):
     lon_corners = cfxr.bounds_to_vertices(ds_pulse.isel(time = 0)['lon_bnds'], "bnds", order=None)
     ds_pulse = ds_pulse.assign(lon_b=lon_corners, lat_b=lat_corners)
 
-    #print(ds_pulse)
-        #fix the lat lon/xy gridding (xmip)
-    #if replace_xy == True:
-       # ds_control = replace_x_y_nominal_lat_lon(ds_control)
-       # ds_pulse = replace_x_y_nominal_lat_lon(ds_pulse)
-    #ds_control = ds_control.rename({'x':'latitude', 'y':'longitude'})
-    #ds_pulse = ds_pulse.rename({'x':'latitude', 'y':'longitude'})
     if ds_control.attrs['parent_source_id'] != ds_pulse.attrs['parent_source_id']:
         print('WARNING: Control and Pulse runs are not from the same parent source!')
+    
     #fix the time for two of the models
     if m == 'NORESM2':
-        ds_pulse['time'] = ds_control['time'][:len(ds_pulse['time'])]
-    if m =='CANESM5_r1p2':
-        ds_pulse['time'] = ds_control['time'][:len(ds_pulse['time'])]
+        ds_pulse['time'] = ds_pulse['time']+timedelta(365*1)
+    if m =='CANESM5_r1p2' or m == 'CANESM5_r2p2' or m == 'CANESM5_r3p2':
+        ds_control['time'] = ds_control['time']-timedelta(365*300)
     #select only the times that match up with the pulse
     ds_control = ds_control.sel(time = slice(ds_control['time'].min(), ds_pulse['time'].max()))
 
@@ -90,42 +63,31 @@ def _regrid_cont_pulse(ds_control, ds_pulse, ds_out):
     return(ds_control, ds_pulse)
 
 
-def _calc_greens(ds_control, ds_pulse, variable, m, pulse_size = 100):
-    
-    #A = find_area(ds_control.isel(time = 0), lat_bound_nm = 'lat_bounds', lon_bound_nm = 'lon_bounds')
+def _calc_greens(ds_control, ds_pulse, variable, m, pulse_type, pulse_size = 100):
     G = (ds_pulse[variable] - ds_control[variable])/(pulse_size)
-    times = pd.date_range('2000', periods=len(G['time']), freq='MS')
-    weights = times.shift(1, 'MS') - times
+    times = G.time.get_index('time')
+    weights = times.shift(-1, 'MS') - times.shift(1, 'MS')
     weights = xr.DataArray(weights, [('time', G['time'].values)]).astype('float')
     G =  (G * weights).groupby('time.year').sum('time')/weights.groupby('time.year').sum('time')
     #select ten years in for two of the models
-    ten_years_in = 10 #in months
-    if m == 'ACCESS':
-        G = G.isel(year = slice(ten_years_in,len(G.year)))
-    if m == 'UKESM1':
-        G = G.isel(year = slice(ten_years_in,len(G.year)))
-    #G = G.groupby('time.year').mean()
+    if pulse_type == 'pulse':
+        ten_years_in = 10 #in years
+        if m == 'ACCESS':
+            G = G.isel(year = slice(ten_years_in,len(G.year)))
+        if m == 'UKESM1_r1':
+            G = G.isel(year = slice(ten_years_in,len(G.year)))
+    elif pulse_type == 'cdr':
+        ten_years_in = 10 #in years
+        if m == 'ACCESS':
+            G = G.isel(year = slice(ten_years_in,len(G.year)))
     G.attrs = ds_pulse.attrs
     
     return(G)
 
-def _calc_anomaly(ds_control, ds_pulse):
-    anom_control = (ds_control.groupby("time.month") - ds_control.groupby("time.month").mean(dim = 'time'))
-    anom_pulse = (ds_pulse.groupby("time.month") - ds_pulse.groupby("time.month").mean(dim = 'time'))
-    return(anom_control, anom_pulse)
-
-def _calc_greens_anomaly(anom_control, anom_pulse, variable, pulse_size = 100):
-    
-    #A = find_area(ds_control.isel(time = 0), lat_bound_nm = 'lat_bounds', lon_bound_nm = 'lon_bounds')
-    G = (anom_pulse[variable] - anom_control[variable])/(pulse_size)
-    G = G.groupby('time.year').mean()
-    G.attrs = anom_pulse.attrs
-    
-    return(G)
 
 
 #full function
-def import_regrid_calc(control_path, pulse_path, ds_out, variable, m, pulse_size = 100,  replace_xy = True, regrid = True, anomaly = False):
+def import_regrid_calc(control_path, pulse_path, ds_out, variable, m, pulse_type, pulse_size = 100,  replace_xy = True, regrid = True, anomaly = False):
     '''Imports the control run and pulse run for a CMIP6 model run, combines them on the date the pulse starts
     Regrids it to the chosen grid size
     Calculates the Green's Function'''
@@ -133,11 +95,7 @@ def import_regrid_calc(control_path, pulse_path, ds_out, variable, m, pulse_size
     ds_control, ds_pulse = _import_combine_pulse_control(control_path, pulse_path, replace_xy, m)
     if regrid == True:
         ds_control, ds_pulse = _regrid_cont_pulse(ds_control, ds_pulse, ds_out)
-    if anomaly == True:
-        anom_control, anom_pulse = _calc_anomaly(ds_control, ds_pulse)
-        anom_G = _calc_greens_anomaly(anom_control, anom_pulse, variable, pulse_size)
-    else:
-        G = _calc_greens(ds_control, ds_pulse, variable, m, pulse_size)
+    G = _calc_greens(ds_control, ds_pulse, variable, m, pulse_type, pulse_size)
     if anomaly == True:
         return(anom_control, anom_pulse, anom_G)
     else:
@@ -321,4 +279,6 @@ model_run_1pct_dict = {'UKESM1_r1':'UKESM1-0-LL_1pctCO2_r1i1p1f2*',
                       'CANESM5_r2p1':'CanESM5_1pctCO2_r2i1p1f1*',
                       'CANESM5_r3p1':'CanESM5_1pctCO2_r3i1p1f1*'}
 
-model_color = {'UKESM1_r1':'olive', 'UKESM1_r2':'brown', 'UKESM1_r3':'green', 'UKESM1_r4':'lightgreen', 'NORESM2':'blue', 'GFDL':'red', 'MIROC':'purple', 'ACCESS':'pink', 'CANESM5_r1p2':'orange', 'CANESM5_r2p2':'sienna', 'CANESM5_r3p2':'goldenrod', 'mean':'black'}
+model_color = {'UKESM1_r1':'darkgreen', 'UKESM1_r2':'mediumaquamarine', 'UKESM1_r3':'seagreen', 'UKESM1_r4':'lightgreen', 'NORESM2':'blue', 'GFDL':'red', 'MIROC':'purple', 'ACCESS':'pink', 'CANESM5_r1p2':'orange', 'CANESM5_r2p2':'sienna', 'CANESM5_r3p2':'goldenrod', 'mean':'black'}
+
+type_color = {'all':'darksalmon', 'model':'goldenrod', 'pulse':'darkcyan', 'cdr':'darkgreen'} 
