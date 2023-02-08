@@ -2,4 +2,6 @@
 *.nc
 *.csv
 *.sh
-
+*.png
+*.xls
+*.pdf

@@ -281,4 +281,4 @@ model_run_1pct_dict = {'UKESM1_r1':'UKESM1-0-LL_1pctCO2_r1i1p1f2*',
 
 model_color = {'UKESM1_r1':'darkgreen', 'UKESM1_r2':'mediumaquamarine', 'UKESM1_r3':'seagreen', 'UKESM1_r4':'lightgreen', 'NORESM2':'blue', 'GFDL':'red', 'MIROC':'purple', 'ACCESS':'pink', 'CANESM5_r1p2':'orange', 'CANESM5_r2p2':'sienna', 'CANESM5_r3p2':'goldenrod', 'mean':'black'}
 
-type_color = {'all':'darksalmon', 'model':'goldenrod', 'pulse':'darkcyan', 'cdr':'darkgreen'} 
+type_color = {'model':'maroon', 'all':'darksalmon',  'pulse':'darkcyan', 'cdr':'darkgreen'} 
