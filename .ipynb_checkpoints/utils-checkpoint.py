@@ -279,6 +279,35 @@ model_run_1pct_dict = {'UKESM1_r1':'UKESM1-0-LL_1pctCO2_r1i1p1f2*',
                       'CANESM5_r2p1':'CanESM5_1pctCO2_r2i1p1f1*',
                       'CANESM5_r3p1':'CanESM5_1pctCO2_r3i1p1f1*'}
 
-model_color = {'UKESM1_r1':'darkgreen', 'UKESM1_r2':'mediumaquamarine', 'UKESM1_r3':'seagreen', 'UKESM1_r4':'lightgreen', 'NORESM2':'blue', 'GFDL':'red', 'MIROC':'purple', 'ACCESS':'pink', 'CANESM5_r1p2':'orange', 'CANESM5_r2p2':'sienna', 'CANESM5_r3p2':'goldenrod', 'mean':'black'}
+model_run_1pct_1000gtc_dict = {'UKESM1_r1':'UKESM1-0-LL_esm-1pct-brch-1000PgC_r1i1p1f2*',
+                       'UKESM1_r2':'UKESM1-0-LL_esm-1pct-brch-1000PgC_r2i1p1f2*',
+                       'UKESM1_r3':'UKESM1-0-LL_esm-1pct-brch-1000PgC_r3i1p1f2*',
+                       'UKESM1_r4':'UKESM1-0-LL_esm-1pct-brch-1000PgC_r4i1p1f2*',
+                        'MIROC':'MIROC-ES2L_esm-1pct-brch-1000PgC_r1i1p1f2_gn*', 
+                        'NORESM2':'NorESM2-LM_esm-1pct-brch-1000PgC_r1i1p1f1_*', 
+                  'ACCESS':'ACCESS-ESM1-5_esm-1pct-brch-1000PgC_r1i1p1f1*',  
+                       # 'GFDL': 'GFDL-ESM4_esm-1pct-brch-1000PgC_r1i1p1f1**', no gfdl data beyond tas
+                      'CANESM5_r1p2':'CanESM5_esm-1pct-brch-1000PgC_r1i1p2f1*',
+                      'CANESM5_r2p2':'CanESM5_esm-1pct-brch-1000PgC_r2i1p2f1*',
+                      'CANESM5_r3p2':'CanESM5_esm-1pct-brch-1000PgC_r3i1p2f1*'}#,
+                      #'CANESM5_r4p2':'CanESM5_esm-1pct-brch-1000PgC_r4i1p2f1*',
+                      #'CANESM5_r5p2':'CanESM5_esm-1pct-brch-1000PgC_r5i1p2f1*'}
+
+model_run_A1_B1_dict = {'GFDL_B1': 'GFDL-ESM2M_esm-bell-1000PgC_1861_2360.csv',
+                       'NORESM2_B1':'NorESM2-LM_esm-bell-1000PgC_1850-2049.csv',
+                       'GFDL_A1': 'GFDL-ESM2M_esm-1pct-brch-1000PgC_1861_2360.csv',
+                       'NORESM2_A1':'NorESM2-LM_esm-1pct-brch-1000PgC_0066-0167.csv'}
+
+
+model_run_4x_dict = {'UKESM1_r1':'UKESM1-0-LL_abrupt-4xCO2_r1i1p1f2*',
+                        'MIROC':'MIROC-ES2L_abrupt-4xCO2_r1i1p1f2_gn*', 
+                        'NORESM2':'NorESM2-LM_abrupt-4xCO2_r1i1p1f1*', 
+                  'ACCESS':'ACCESS-ESM1-5_abrupt-4xCO2_r1i1p1f1*',  
+                        #'GFDL': 'GFDL-ESM4_abrupt-4xCO2_r1i1p1f1**',
+                      'CANESM5_r1p2':'CanESM5_abrupt-4xCO2_r1i1p2f1_gn*',
+                      'CANESM5_r1p1':'CanESM5_abrupt-4xCO2_r1i1p1f1_gn*'
+                    }
+
+model_color = {'UKESM1_r1':'darkgreen', 'UKESM1_r2':'mediumaquamarine', 'UKESM1_r3':'seagreen', 'UKESM1_r4':'lightgreen', 'NORESM2':'blue', 'GFDL':'red', 'MIROC':'purple', 'ACCESS':'pink', 'CANESM5_r1p2':'orange', 'CANESM5_r2p2':'sienna', 'CANESM5_r3p2':'goldenrod', 'CANESM5_r1p1':'sienna','mean':'black'}
 
 type_color = {'model':'maroon', 'all':'darksalmon',  'pulse':'darkcyan', 'cdr':'darkgreen'} 
