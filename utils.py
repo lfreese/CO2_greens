@@ -121,6 +121,7 @@ ds_out = xr.Dataset(
     }
 )
 
+
 #### function to find area of a grid cell from lat/lon ####
 def find_area(ds, R = 6378.1):
     """ ds is the dataset, i is the number of longitudes to assess, j is the number of latitudes, and R is the radius of the earth in km. 
@@ -147,6 +148,7 @@ def find_area(ds, R = 6378.1):
     
     return(A)
 
+A = find_area(ds_out)
 
 ########################### 1pct increase ###################################
 def compound_mult(start,years, percentage):
@@ -183,45 +185,65 @@ def np_to_xr_mean(C, G, E):
             )
         )
     return(C)
-########################### convolutions ###################################
 
-def convolve_single_lev(G, E, dt):
-    '''convolves a spatially resolved G that is mean or single level with an emissions scenario of any length'''
-    E_len = len(E)
-    G_len = len(G.year)
-    C = dask.array.empty(((E_len+G_len), len(G.lat), len(G.lon))) 
-    for i, tp in enumerate(np.arange(0,E_len)):
-        C[i:i+G_len] = C[i:i+G_len]+ G*E[i]*dt #C.loc slice or where
-        #print((G*E[i]*dt).values)
-        #print(C.compute())
-    C = xr.DataArray(
-    data = C,
-    dims = ['s','lat','lon'],
-    coords = dict(
-        s = (['s'], np.arange(0,(E_len+G_len))),
-        lat = (['lat'], G.lat.values),
-        lon = (['lon'], G.lon.values)
-            )
-        )
-    return C
 
-def convolve_single_lev_mean(G, E, dt):
-    '''convolves a spatially resolved G that is mean or single level with an emissions scenario of any length'''
-    E_len = len(E)
-    G_len = len(G.year)
-    C = dask.array.empty((E_len+G_len)) 
-    for i, tp in enumerate(np.arange(0,E_len)):
-        C[i:i+G_len] = C[i:i+G_len]+ G*E[i]*dt #C.loc slice or where
-        #print((G*E[i]*dt).values)
-        #print(C.compute())
-    C = xr.DataArray(
-    data = C,
-    dims = ['s'],
-    coords = dict(
-        s = (['s'], np.arange(0,(E_len+G_len))),
-            )
-        )
-    return C
+########################## model weights ###########################
+#define our weights for convolution
+model_weights = {'UKESM1_r1': 0.25, 'UKESM1_r2': 0.25, 'UKESM1_r3': 0.25, 'UKESM1_r4': 0.25, 'NORESM2': 1, 'GFDL': 1,
+       'MIROC': 1, 'ACCESS': 1,  'CANESM5_r2p2':1/3, 'CANESM5_r1p2':1/3, 'CANESM5_r3p2':1/3}
+model_weights = xr.DataArray(
+    data=list(model_weights.values()),
+    dims=["model"],
+    coords=dict(
+        model=(["model"], list(model_weights.keys()))
+    ),
+    attrs=dict(
+        description="weights for models"
+    ),
+)
+
+#define our weights 1pct models
+onepct_model_weights = {'UKESM1_r1': 0.25, 'UKESM1_r2': 0.25, 'UKESM1_r3': 0.25, 'UKESM1_r4': 0.25, 'NORESM2': 1, 'GFDL': 1,
+       'MIROC': 1, 'CANESM5_r3p1':1/6, 'ACCESS':1, 'CANESM5_r2p2':1/6, 'CANESM5_r2p1':1/6,
+       'CANESM5_r1p2':1/6, 'CANESM5_r1p1':1/6, 'CANESM5_r3p2':1/6}
+onepct_model_weights = xr.DataArray(
+    data=list(onepct_model_weights.values()),
+    dims=["model"],
+    coords=dict(
+        model=(["model"], list(onepct_model_weights.keys()))
+    ),
+    attrs=dict(
+        description="weights for 1pct models"
+    ),
+)
+#define our weights for G
+G_model_weights = {'UKESM1_r1': 1, 'NORESM2': 1, 'GFDL': 1,
+       'MIROC': 1, 'ACCESS': 1,  'CANESM5_r1p2':1/3, 'CANESM5_r2p2':1/3, 'CANESM5_r3p2':1/3}
+G_model_weights = xr.DataArray(
+    data=list(G_model_weights.values()),
+    dims=["model"],
+    coords=dict(
+        model=(["model"], list(G_model_weights.keys()))
+    ),
+    attrs=dict(
+        description="weights for Green's function"
+    ),
+)
+
+#define our weights for the pictrl
+pictrl_model_weights = {'UKESM1_r1': 1, 'NORESM2': 1, 'GFDL': 1,
+       'MIROC': 1, 'ACCESS': 1,  'CANESM5_r1p1':1/2, 'CANESM5_r1p2':1/2}
+pictrl_model_weights = xr.DataArray(
+    data=list(pictrl_model_weights.values()),
+    dims=["model"],
+    coords=dict(
+        model=(["model"], list(pictrl_model_weights.keys()))
+    ),
+    attrs=dict(
+        description="weights for models"
+    ),
+)
+
 
 ################################# dataset dictionaries ###########################
 
@@ -308,6 +330,15 @@ model_run_4x_dict = {'UKESM1_r1':'UKESM1-0-LL_abrupt-4xCO2_r1i1p1f2*',
                       'CANESM5_r1p1':'CanESM5_abrupt-4xCO2_r1i1p1f1_gn*'
                     }
 
+################## colors ######################
+
+type_color = {'model_1pct': 'darkcyan',
+              'model_1000gtc': 'darkcyan',
+             'emulator_1pct': 'maroon',
+              'emulator_1000gtc':'maroon'}
+
 model_color = {'UKESM1_r1':'darkgreen', 'UKESM1_r2':'mediumaquamarine', 'UKESM1_r3':'seagreen', 'UKESM1_r4':'lightgreen', 'NORESM2':'blue', 'GFDL':'red', 'MIROC':'purple', 'ACCESS':'pink', 'CANESM5_r1p2':'orange', 'CANESM5_r2p2':'sienna', 'CANESM5_r3p2':'goldenrod', 'CANESM5_r1p1':'sienna','mean':'black'}
 
-type_color = {'model':'maroon', 'all':'darksalmon',  'pulse':'darkcyan', 'cdr':'darkgreen'} 
+#type_color = {'model':'maroon', 'all':'darksalmon',  'pulse':'darkcyan', 'cdr':'darkgreen'} 
+
+proper_names = {'UKESM1_r1':'UKESM1', 'MIROC':'MIROC', 'NORESM2':'NORESM2', 'ACCESS':'ACCESS', 'GFDL':'GFDL', 'CANESM5_r1p2':'CANESM5'}
