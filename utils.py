@@ -63,31 +63,51 @@ def _regrid_cont_pulse(ds_control, ds_pulse, ds_out):
     return(ds_control, ds_pulse)
 
 
-def _calc_greens(ds_control, ds_pulse, variable, m, pulse_type, pulse_size = 100):
-    G = (ds_pulse[variable] - ds_control[variable])/(pulse_size)
-    times = G.time.get_index('time')
-    weights = times.shift(-1, 'MS') - times.shift(1, 'MS')
-    weights = xr.DataArray(weights, [('time', G['time'].values)]).astype('float')
-    G =  (G * weights).groupby('time.year').sum('time')/weights.groupby('time.year').sum('time')
-    #select ten years in for two of the models
-    if pulse_type == 'pulse':
-        ten_years_in = 10 #in years
-        if m == 'ACCESS':
-            G = G.isel(year = slice(ten_years_in,len(G.year)))
-        if m == 'UKESM1_r1':
-            G = G.isel(year = slice(ten_years_in,len(G.year)))
-    elif pulse_type == 'cdr':
-        ten_years_in = 10 #in years
-        if m == 'ACCESS':
-            G = G.isel(year = slice(ten_years_in,len(G.year)))
-    G.attrs = ds_pulse.attrs
+def _calc_greens(ds_control, ds_pulse, variable, m, pulse_type, climatology, pulse_size = 100):
+    if climatology == False:
+        G = (ds_pulse[variable] - ds_control[variable])/(pulse_size)
+        times = G.time.get_index('time')
+        weights = times.shift(-1, 'MS') - times.shift(1, 'MS')
+        weights = xr.DataArray(weights, [('time', G['time'].values)]).astype('float')
+        G =  (G * weights).groupby('time.year').sum('time')/weights.groupby('time.year').sum('time')
+        #select ten years in for two of the models
+        if pulse_type == 'pulse':
+            ten_years_in = 10 #in years
+            if m == 'ACCESS':
+                G = G.isel(year = slice(ten_years_in,len(G.year)))
+            if m == 'UKESM1_r1':
+                G = G.isel(year = slice(ten_years_in,len(G.year)))
+        elif pulse_type == 'cdr':
+            ten_years_in = 10 #in years
+            if m == 'ACCESS':
+                G = G.isel(year = slice(ten_years_in,len(G.year)))
+        G.attrs = ds_pulse.attrs
+        return(G)
     
-    return(G)
+    elif climatology == True:
+        G = (ds_pulse[variable].groupby("time.month") - ds_control[variable].groupby('time.month').mean('time'))/(pulse_size)
+        times = G.time.get_index('time')
+        weights = times.shift(-1, 'MS') - times.shift(1, 'MS')
+        weights = xr.DataArray(weights, [('time', G['time'].values)]).astype('float')
+        G =  (G * weights).groupby('time.year').sum('time')/weights.groupby('time.year').sum('time')
+        #select ten years in for two of the models
+        if pulse_type == 'pulse':
+            ten_years_in = 10 #in years
+            if m == 'ACCESS':
+                G = G.isel(year = slice(ten_years_in,len(G.year)))
+            if m == 'UKESM1_r1':
+                G = G.isel(year = slice(ten_years_in,len(G.year)))
+        elif pulse_type == 'cdr':
+            ten_years_in = 10 #in years
+            if m == 'ACCESS':
+                G = G.isel(year = slice(ten_years_in,len(G.year)))
+        G.attrs = ds_pulse.attrs
+        return(G)
 
 
 
 #full function
-def import_regrid_calc(control_path, pulse_path, ds_out, variable, m, pulse_type, pulse_size = 100,  replace_xy = True, regrid = True, anomaly = False):
+def import_regrid_calc(control_path, pulse_path, ds_out, variable, m, pulse_type, pulse_size = 100,  replace_xy = True, regrid = True, anomaly = False, climatology = False):
     '''Imports the control run and pulse run for a CMIP6 model run, combines them on the date the pulse starts
     Regrids it to the chosen grid size
     Calculates the Green's Function'''
@@ -95,7 +115,7 @@ def import_regrid_calc(control_path, pulse_path, ds_out, variable, m, pulse_type
     ds_control, ds_pulse = _import_combine_pulse_control(control_path, pulse_path, replace_xy, m)
     if regrid == True:
         ds_control, ds_pulse = _regrid_cont_pulse(ds_control, ds_pulse, ds_out)
-    G = _calc_greens(ds_control, ds_pulse, variable, m, pulse_type, pulse_size)
+    G = _calc_greens(ds_control, ds_pulse, variable, m, pulse_type, climatology, pulse_size)
     if anomaly == True:
         return(anom_control, anom_pulse, anom_G)
     else:
