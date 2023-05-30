@@ -63,8 +63,9 @@ def _regrid_cont_pulse(ds_control, ds_pulse, ds_out):
     return(ds_control, ds_pulse)
 
 
-def _calc_greens(ds_control, ds_pulse, variable, m, pulse_type, climatology, pulse_size = 100):
-    if climatology == False:
+def _calc_greens(ds_control, ds_pulse, variable, m, pulse_type, climatology, internal_variability_test, polyfit_diagnostics, polyfit_G, pulse_size = 100):
+    if climatology == False and internal_variability_test == False and polyfit_diagnostics == False and polyfit_G == False:
+        print('normal run')
         G = (ds_pulse[variable] - ds_control[variable])/(pulse_size)
         times = G.time.get_index('time')
         weights = times.shift(-1, 'MS') - times.shift(1, 'MS')
@@ -85,6 +86,7 @@ def _calc_greens(ds_control, ds_pulse, variable, m, pulse_type, climatology, pul
         return(G)
     
     elif climatology == True:
+        print('climatology run')
         G = (ds_pulse[variable].groupby("time.month") - ds_control[variable].groupby('time.month').mean('time'))/(pulse_size)
         times = G.time.get_index('time')
         weights = times.shift(-1, 'MS') - times.shift(1, 'MS')
@@ -103,11 +105,71 @@ def _calc_greens(ds_control, ds_pulse, variable, m, pulse_type, climatology, pul
                 G = G.isel(year = slice(ten_years_in,len(G.year)))
         G.attrs = ds_pulse.attrs
         return(G)
-
-
+    
+    elif internal_variability_test == True:
+        print('internal variability run')
+        G = {}
+        for n in np.arange(0,100)[::5]:
+            G[n] = (ds_pulse[variable] - ds_control[variable].shift(time = -n))/(pulse_size)
+            times = G[n].time.get_index('time')
+            weights = times.shift(-1, 'MS') - times.shift(1, 'MS')
+            weights = xr.DataArray(weights, [('time', G[n]['time'].values)]).astype('float')
+            G[n] =  (G[n] * weights).groupby('time.year').sum('time')/weights.groupby('time.year').sum('time')
+            #select ten years in for two of the models
+            if pulse_type == 'pulse':
+                ten_years_in = 10 #in years
+                if m == 'ACCESS':
+                    G[n] = G[n].isel(year = slice(ten_years_in,len(G[n].year)))
+                if m == 'UKESM1_r1':
+                    G[n] = G[n].isel(year = slice(ten_years_in,len(G[n].year)))
+            elif pulse_type == 'cdr':
+                ten_years_in = 10 #in years
+                if m == 'ACCESS':
+                    G[n] = G[n].isel(year = slice(ten_years_in,len(G[n].year)))
+            G[n].attrs = ds_pulse.attrs
+        G = xr.concat([G[m] for m in G.keys()], pd.Index([m for m in G.keys()], name='pulse_year'))
+        return(G)    
+    
+    elif polyfit_diagnostics == True and polyfit_G == True:
+        print('polyfit diagnostics and G run')
+        
+        G_normal_base_pulse = ((ds_pulse[variable] - ds_control[variable])/(pulse_size))
+        poly_G = G_normal_base_pulse.polyfit('time', 4)
+        G_normal_base_pulse = xr.polyval(ds_pulse.time, poly_G)['polyfit_coefficients']
+        
+        poly_pulse = ds_pulse[variable].polyfit('time', 4)
+        polyfit_pulse = xr.polyval(ds_pulse.time, poly_pulse)
+        
+        poly_cont = ds_control[variable].polyfit('time', 4)
+        polyfit_cont = xr.polyval(ds_control.time, poly_cont)
+        
+        G_polyfit_base_pulse = ((polyfit_pulse['polyfit_coefficients'] - polyfit_cont['polyfit_coefficients'])/(pulse_size))
+        
+        G = xr.concat([G_normal_base_pulse, G_polyfit_base_pulse], pd.Index(['normal_base_pulse', 'polyfit_base_pulse'], name = 'polyfit_type'))
+        
+        #weight by month and take mean
+        times = G.time.get_index('time')
+        weights = times.shift(-1, 'MS') - times.shift(1, 'MS')
+        weights = xr.DataArray(weights, [('time', G['time'].values)]).astype('float')
+        G =  (G * weights).groupby('time.year').sum('time')/weights.groupby('time.year').sum('time')
+        #select ten years in for two of the models
+        if pulse_type == 'pulse':
+            ten_years_in = 10 #in years
+            if m == 'ACCESS':
+                G = G.isel(year = slice(ten_years_in,len(G.year)))
+            if m == 'UKESM1_r1':
+                G = G.isel(year = slice(ten_years_in,len(G.year)))
+        elif pulse_type == 'cdr':
+            ten_years_in = 10 #in years
+            if m == 'ACCESS':
+                G = G.isel(year = slice(ten_years_in,len(G.year)))
+        G.attrs = ds_pulse.attrs
+        
+        return(G)   
+    
 
 #full function
-def import_regrid_calc(control_path, pulse_path, ds_out, variable, m, pulse_type, pulse_size = 100,  replace_xy = True, regrid = True, anomaly = False, climatology = False):
+def import_regrid_calc(control_path, pulse_path, ds_out, variable, m, pulse_type, pulse_size = 100,  replace_xy = True, regrid = True, anomaly = False, climatology = False, internal_variability_test = False, polyfit_diagnostics = False, polyfit_G = False):
     '''Imports the control run and pulse run for a CMIP6 model run, combines them on the date the pulse starts
     Regrids it to the chosen grid size
     Calculates the Green's Function'''
@@ -115,7 +177,7 @@ def import_regrid_calc(control_path, pulse_path, ds_out, variable, m, pulse_type
     ds_control, ds_pulse = _import_combine_pulse_control(control_path, pulse_path, replace_xy, m)
     if regrid == True:
         ds_control, ds_pulse = _regrid_cont_pulse(ds_control, ds_pulse, ds_out)
-    G = _calc_greens(ds_control, ds_pulse, variable, m, pulse_type, climatology, pulse_size)
+    G = _calc_greens(ds_control, ds_pulse, variable, m, pulse_type, climatology, internal_variability_test, polyfit_diagnostics, polyfit_G, pulse_size)
     if anomaly == True:
         return(anom_control, anom_pulse, anom_G)
     else:
