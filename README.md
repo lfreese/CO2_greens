@@ -11,6 +11,8 @@ All CMIP6 data is obtained from the CMIP6 archive at ESGF, and can be freely dow
 CO2_GF_creation_cdr_all_models creates the Green's functions for cdr runs
 CO2_GF_creation_pulse_all_models creates the Green's functions for pulse runs
 CO2_GF_plots plots the Green's Functions
+CO2_*_climatology is to create the climatology uncertainty testing Green's functions 
+CO2_*_polyfit is to create the polyfit uncertainty testing Green's functions
 
 ### 1pct and 1pct-1000PgC evaluation
 
@@ -32,3 +34,5 @@ scenarios is for evaluating two trajectories that end with the same cumulative e
 Edwards_IAM_convolutions is for testing Morgan Edwards CO2 scenarios
 example_GF is for a simple video for slides on how a convolution works
 example_trajectories is for a GF explainer slide on how they work with an example
+Fourier_transform is for the fourier transform analysis in the supplement
+
