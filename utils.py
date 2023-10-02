@@ -196,6 +196,29 @@ def find_area(ds, R = 6378.1):
 
 A = find_area(ds_out)
 
+
+### polyfit for G ###
+
+def import_polyfit_G(G_ds_path, G_cdr_ds_path):
+    G_ds = xr.open_dataset(G_ds_path)['__xarray_dataarray_variable__']
+
+    G_CDR_ds = xr.open_dataset(G_cdr_ds_path)['__xarray_dataarray_variable__']
+
+    #4th order polyfit
+    Gpoly = G_ds.polyfit('year', 4)
+    G_ds= xr.polyval(G_ds.year, Gpoly)['polyfit_coefficients']
+
+    Gpoly_cdr = G_CDR_ds.polyfit('year', 4)
+    G_CDR_ds= xr.polyval(G_CDR_ds.year, Gpoly_cdr)['polyfit_coefficients']
+
+    G_ds = xr.concat([G_ds, -G_CDR_ds], pd.Index(['pulse','cdr'], name = 'pulse_type'))
+
+
+    G_ds.name = 'G[tas]'
+    G_ds = G_ds.rename({'year':'s'})
+    return(G_ds)
+
+
 ########################### 1pct increase ###################################
 def compound_mult(start,years, percentage):
     num = start
