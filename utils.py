@@ -398,6 +398,15 @@ model_run_4x_dict = {'UKESM1_r1':'UKESM1-0-LL_abrupt-4xCO2_r1i1p1f2*',
                       'CANESM5_r1p2':'CanESM5_abrupt-4xCO2_r1i1p2f1_gn*',
                       'CANESM5_r1p1':'CanESM5_abrupt-4xCO2_r1i1p1f1_gn*'
                     }
+model_run_hist_co2_dict = {'CANESM5_r1p1':'CanESM5_hist-CO2_r1i1p1f1*',
+                      'CANESM5_r2p1':'CanESM5_hist-CO2_r2i1p1f1*',
+                      'CANESM5_r3p1':'CanESM5_hist-CO2_r3i1p1f1*',
+                      'CANESM5_r4p1':'CanESM5_hist-CO2_r4i1p1f1*',
+                      'CANESM5_r5p1':'CanESM5_hist-CO2_r5i1p1f1*',
+                      'CANESM5_r6p1':'CanESM5_hist-CO2_r6i1p1f1*',
+                      'CANESM5_r7p1':'CanESM5_hist-CO2_r7i1p1f1*',
+                      'CANESM5_r8p1':'CanESM5_hist-CO2_r8i1p1f1*',
+                      'CANESM5_r9p1':'CanESM5_hist-CO2_r9i1p1f1*'}
 
 ################## colors ######################
 
