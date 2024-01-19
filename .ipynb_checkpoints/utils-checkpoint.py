@@ -199,10 +199,10 @@ A = find_area(ds_out)
 
 ### polyfit for G ###
 
-def import_polyfit_G(G_ds_path, G_cdr_ds_path):
-    G_ds = xr.open_dataset(G_ds_path)['__xarray_dataarray_variable__']
+def import_polyfit_G(G_ds_path, G_cdr_ds_path, chunks = None):
+    G_ds = xr.open_dataset(G_ds_path, chunks = chunks)['__xarray_dataarray_variable__']
 
-    G_CDR_ds = xr.open_dataset(G_cdr_ds_path)['__xarray_dataarray_variable__']
+    G_CDR_ds = xr.open_dataset(G_cdr_ds_path, chunks = chunks)['__xarray_dataarray_variable__']
 
     #4th order polyfit
     Gpoly = G_ds.polyfit('year', 4)

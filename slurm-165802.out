@@ -1,0 +1,61 @@
+1228.7297437763739
+Traceback (most recent call last):
+  File "/tmp/slurmd/job165802/slurm_script", line 192, in <module>
+    conv_2degC[m][n] = signal.convolve(np.array(GF.dropna(dim = 's')), e_range[n][..., None, None],'full')
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/xarray/core/dataarray.py", line 2440, in dropna
+    ds = self._to_temp_dataset().dropna(dim, how=how, thresh=thresh)
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/xarray/core/dataset.py", line 4703, in dropna
+    count += np.asarray(array.count(dims))  # type: ignore[attr-defined]
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/xarray/core/common.py", line 143, in __array__
+    return np.asarray(self.values, dtype=dtype)
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/xarray/core/variable.py", line 512, in values
+    return _as_array_or_item(self._data)
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/xarray/core/variable.py", line 252, in _as_array_or_item
+    data = np.asarray(data)
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/array/core.py", line 1686, in __array__
+    x = self.compute()
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/base.py", line 312, in compute
+    (result,) = compute(self, traverse=False, **kwargs)
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/base.py", line 600, in compute
+    results = schedule(dsk, keys, **kwargs)
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/threaded.py", line 81, in get
+    results = get_async(
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/local.py", line 508, in get_async
+    raise_exception(exc, tb)
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/local.py", line 316, in reraise
+    raise exc
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/local.py", line 221, in execute_task
+    result = _execute_task(task, data)
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/core.py", line 119, in _execute_task
+    return func(*(_execute_task(a, cache) for a in args))
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/core.py", line 119, in <genexpr>
+    return func(*(_execute_task(a, cache) for a in args))
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/core.py", line 119, in _execute_task
+    return func(*(_execute_task(a, cache) for a in args))
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/core.py", line 119, in <genexpr>
+    return func(*(_execute_task(a, cache) for a in args))
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/core.py", line 119, in _execute_task
+    return func(*(_execute_task(a, cache) for a in args))
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/core.py", line 119, in <genexpr>
+    return func(*(_execute_task(a, cache) for a in args))
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/core.py", line 119, in _execute_task
+    return func(*(_execute_task(a, cache) for a in args))
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/core.py", line 119, in <genexpr>
+    return func(*(_execute_task(a, cache) for a in args))
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/core.py", line 119, in _execute_task
+    return func(*(_execute_task(a, cache) for a in args))
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/core.py", line 119, in <genexpr>
+    return func(*(_execute_task(a, cache) for a in args))
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/core.py", line 113, in _execute_task
+    return [_execute_task(a, cache) for a in arg]
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/core.py", line 113, in <listcomp>
+    return [_execute_task(a, cache) for a in arg]
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/core.py", line 119, in _execute_task
+    return func(*(_execute_task(a, cache) for a in args))
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/optimization.py", line 990, in __call__
+    return core.get(self.dsk, self.outkey, dict(zip(self.inkeys, args)))
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/core.py", line 149, in get
+    result = _execute_task(task, cache)
+  File "/home/emfreese/anaconda3/envs/gchp/lib/python3.9/site-packages/dask/core.py", line 119, in _execute_task
+    return func(*(_execute_task(a, cache) for a in args))
+numpy.core._exceptions._ArrayMemoryError: Unable to allocate 93.1 GiB for an array with shape (241, 5, 8, 20, 180, 360) and data type float64
