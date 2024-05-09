@@ -309,9 +309,94 @@ pictrl_model_weights = xr.DataArray(
         model=(["model"], list(pictrl_model_weights.keys()))
     ),
     attrs=dict(
-        description="weights for models"
+        description="weights for pictrl models"
     ),
 )
+
+#define our weights for the 4x
+fourx_model_weights = {'UKESM1_r1': 1, 'NORESM2': 1,
+       'MIROC': 1, 'ACCESS': 1,  'CANESM5_r1p1':1/2, 'CANESM5_r1p2':1/2}
+fourx_model_weights = xr.DataArray(
+    data=list(fourx_model_weights.values()),
+    dims=["model"],
+    coords=dict(
+        model=(["model"], list(fourx_model_weights.keys()))
+    ),
+    attrs=dict(
+        description="weights for 4x models"
+    ),
+)
+
+#define our weights for the 1000gtc
+onepct_1000gtc_weights = {'UKESM1_r1': 1/4, 'UKESM1_r2': 1/4,
+       'UKESM1_r3': 1/4, 'UKESM1_r4': 1/4,  'MIROC':1, 'NORESM2':1, 'ACCESS':1,
+                         'CANESM5_r1p2':1/3, 'CANESM5_r2p2':1/3, 'CANESM5_r3p2':1/3}
+onepct_1000gtc_weights = xr.DataArray(
+    data=list(onepct_1000gtc_weights.values()),
+    dims=["model"],
+    coords=dict(
+        model=(["model"], list(onepct_1000gtc_weights.keys()))
+    ),
+    attrs=dict(
+        description="weights for 1pct 1000PgC branch models"
+    ),
+)
+
+
+##### Shift colormap (from https://stackoverflow.com/questions/7404116/defining-the-midpoint-of-a-colormap-in-matplotlib)
+from mpl_toolkits.axes_grid1 import AxesGrid
+import matplotlib
+
+def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
+    '''
+    Function to offset the "center" of a colormap. Useful for
+    data with a negative min and positive max and you want the
+    middle of the colormap's dynamic range to be at zero.
+
+    Input
+    -----
+      cmap : The matplotlib colormap to be altered
+      start : Offset from lowest point in the colormap's range.
+          Defaults to 0.0 (no lower offset). Should be between
+          0.0 and `midpoint`.
+      midpoint : The new center of the colormap. Defaults to 
+          0.5 (no shift). Should be between 0.0 and 1.0. In
+          general, this should be  1 - vmax / (vmax + abs(vmin))
+          For example if your data range from -15.0 to +5.0 and
+          you want the center of the colormap at 0.0, `midpoint`
+          should be set to  1 - 5/(5 + 15)) or 0.75
+      stop : Offset from highest point in the colormap's range.
+          Defaults to 1.0 (no upper offset). Should be between
+          `midpoint` and 1.0.
+    '''
+    cdict = {
+        'red': [],
+        'green': [],
+        'blue': [],
+        'alpha': []
+    }
+
+    # regular index to compute the colors
+    reg_index = np.linspace(start, stop, 257)
+
+    # shifted index to match the data
+    shift_index = np.hstack([
+        np.linspace(0.0, midpoint, 128, endpoint=False), 
+        np.linspace(midpoint, 1.0, 129, endpoint=True)
+    ])
+
+    for ri, si in zip(reg_index, shift_index):
+        r, g, b, a = cmap(ri)
+
+        cdict['red'].append((si, r, r))
+        cdict['green'].append((si, g, g))
+        cdict['blue'].append((si, b, b))
+        cdict['alpha'].append((si, a, a))
+
+    newcmap = matplotlib.colors.LinearSegmentedColormap(name, cdict)
+    plt.register_cmap(cmap=newcmap)
+
+    return newcmap
 
 
 ################################# dataset dictionaries ###########################
@@ -380,9 +465,7 @@ model_run_1pct_1000gtc_dict = {'UKESM1_r1':'UKESM1-0-LL_esm-1pct-brch-1000PgC_r1
                        # 'GFDL': 'GFDL-ESM4_esm-1pct-brch-1000PgC_r1i1p1f1**', no gfdl data beyond tas
                       'CANESM5_r1p2':'CanESM5_esm-1pct-brch-1000PgC_r1i1p2f1*',
                       'CANESM5_r2p2':'CanESM5_esm-1pct-brch-1000PgC_r2i1p2f1*',
-                      'CANESM5_r3p2':'CanESM5_esm-1pct-brch-1000PgC_r3i1p2f1*'}#,
-                      #'CANESM5_r4p2':'CanESM5_esm-1pct-brch-1000PgC_r4i1p2f1*',
-                      #'CANESM5_r5p2':'CanESM5_esm-1pct-brch-1000PgC_r5i1p2f1*'}
+                      'CANESM5_r3p2':'CanESM5_esm-1pct-brch-1000PgC_r3i1p2f1*'}
 
 model_run_A1_B1_dict = {'GFDL_B1': 'GFDL-ESM2M_esm-bell-1000PgC_1861_2360.csv',
                        'NORESM2_B1':'NorESM2-LM_esm-bell-1000PgC_1850-2049.csv',
