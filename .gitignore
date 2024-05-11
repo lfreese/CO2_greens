@@ -6,3 +6,5 @@
 *.xls
 *.pdf
 *.status
+*.eps
+.ipynb_checkpoints
