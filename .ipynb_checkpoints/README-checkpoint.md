@@ -41,6 +41,9 @@ Supplementary_figs_GF_smoothing has supplementary Figs S20 and S21
 Supplementary_figs_Global_mean_pulse_cdr_comparison has supplementary Figs S3
 Supplementary_figs_Model_comparison_std_deviation has supplementary Figs S2 and S7
 Supplementary_figs_GF_by_model has supplementary Figs S1 and S4
+Supplementary_figs_Variance has supplementary Figs S22
+
+Supplementary Figs S5-S6
 
 ### Folders
 
@@ -70,3 +73,5 @@ establishing the base temperature that this could be emulated off of to project 
 contains all cmip6 data needed for this work (see paper for table to download yourself)
 ## additional_data
 unecessary for analysis, this is just to test other comparisons, and includes the zecmip, Joos, and Edwards data
+## scratch_old_analysis
+analysis not used in paper, but could be useful

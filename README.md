@@ -73,3 +73,5 @@ establishing the base temperature that this could be emulated off of to project 
 contains all cmip6 data needed for this work (see paper for table to download yourself)
 ## additional_data
 unecessary for analysis, this is just to test other comparisons, and includes the zecmip, Joos, and Edwards data
+## scratch_old_analysis
+analysis not used in paper, but could be useful

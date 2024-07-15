@@ -8,3 +8,4 @@
 *.status
 *.eps
 .ipynb_checkpoints
+__pycache__
