@@ -5,41 +5,45 @@
 All CMIP6 data is obtained from the CMIP6 archive at ESGF, and can be freely downloaded. It is located locally at /fs11/d0/emfreese/CO2_GF/cmip6_data
 
 ## Notebooks
-Notebooks are ordered 1-7, with the main notebook $(\#_xxx)$ being for the main analysis, and if there are subcomponents $(\#.\#_xxx)$ those would be sensitivities for the work.
+Suggested to run in the order shown below:
 
 ### 1. Creating the Green's Functions:
 
-1_CO2_GF_creation creates the Green's functions 
-1.1_CO2_GF_sensitivity_climatology_creation creates the climatology based sensitivity Green's Functions
-1.2_CO2_GF_sensitivity_internal_var_creation creates the internal variance based sensitivity for the Green's Functions
-1.3_CO2_GF_sensitivity_polyfit_creation creates the polyfit of the Green's Function in two forms for comparison
-1.4_CO2_GF_plots is plotting of the Green's functions
+CO2_GF_creation creates the Green's functions 
+CO2_GF_sensitivity_climatology_creation creates the climatology based sensitivity Green's Functions
+CO2_GF_sensitivity_internal_var_creation creates the internal variance based sensitivity for the Green's Functions
+CO2_GF_sensitivity_polyfit_creation creates the polyfit of the Green's Function in two forms for comparison
+CO2_GF_plots is plotting of the Green's functions
 
 ### 2. RTCRE
-2_RTCRE_calc calculates the RTCRE for the relevant model simulations
+RTCRE_calc calculates the RTCRE for the relevant model simulations
 
 ### 3. Emission Profiles
 
-3_emission_profile_1pct_1000gtc diagnoses the emissions for the 1pct-1000pgc case
-3_emission_profile_1pct diagnoses the emissions for the 1pct co2 case
-3_emission_profile_hist_co2_only diagnoses the emissions for the hist co2 case
+Emission_profile_1pct_1000gtc diagnoses the emissions for the 1pct-1000pgc case
+Emission_profile_1pct diagnoses the emissions for the 1pct co2 case
+Emission_profile_hist_co2_only diagnoses the emissions for the hist co2 case
 
 ### 4. Convolutions
-4_convolution_1pct_and_1000gtc does the convolution for the 1pct and 1pct-1000pgc cases
-4_convolution_hist_co2_only does the convolution for the hist co2 case
+Convolution_1pct_and_1000gtc does the convolution for the 1pct and 1pct-1000pgc cases
+Convolution_hist_co2_only does the convolution for the hist co2 case
 
-### 5. Evaluation
-5_evaluation is the main evaluation of the green's function compared to the CMIP6 model runs
-5.1_RTCRE_comparison_hist compares how a RTCRE does vs. the Green's function at recreating the hist CO2 run
+### 6. Paper Figures
+Paper_Figure_1_global_mean is the figure 1 for the GRL paper
+Paper_Figure_2_spatial_pattern is the figure 2 for the GRL paper
+Paper_Figure_3_normalized_dif is the figure 3 for the GRL paper
+Paper_Figure_4_scenarios is the figure 4 for the GRL paper
 
-### 6. Scenarios
-6_scenarios_trajectories is in the main text, and is the two trajectories for the same cumulative emissions
-6.1_scenarios_2degrees is an extra analysis looking at the temp in local places when 2 degrees global is hit
+### 7. Supplementary Figures
+Supplementary_figs_CMIP6_RMSE_comparison has supplementary Figs S8-S19
+Supplementary_figs_Fourier_transform has supplementary Fig 23
+Supplementary_figs_GF_smoothing has supplementary Figs S20 and S21
+Supplementary_figs_Global_mean_pulse_cdr_comparison has supplementary Figs S3
+Supplementary_figs_Model_comparison_std_deviation has supplementary Figs S2 and S7
+Supplementary_figs_GF_by_model has supplementary Figs S1 and S4
+Supplementary_figs_Variance has supplementary Figs S22
 
-### 7. Uncertainty
-7.1_uncertainty_CO2_GF_internal_var tests the role of internal variability vs model variability (in a Hawkins and Sutton 2009 approach)
-7.2_uncertainty_CO2_GF_climatology_polyfit tests the impact different polyfits have on the Green's Function, as well as the use of climatological mean for the pictrl versus not
-7.3_uncertainty_fourier_transorm is the fourier transform of emissions, Green's function and their product to look at the role of internal variability
+Supplementary Figs S5-S6
 
 ### Folders
 
